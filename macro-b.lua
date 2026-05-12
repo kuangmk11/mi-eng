@@ -55,6 +55,30 @@ local current_note = pitch
 local metarandom = false
 
 local param_assign = {"timbre","color","decim","bits","ws","pitch","resamp","model", "ampAtk", "ampDec", "ampSus", "ampRel"}
+
+-- Grid (intervals isomorphic layout)
+local g = grid.connect()
+local grid_held = {}  -- grid_held[x][y] = true when key pressed
+local grid_vel = 4    -- velocity row index (1=loudest, 8=quietest)
+local grid_velocities = {127, 112, 96, 80, 64, 32, 16, 1}
+local grid_display = {[0]=9, 0, 4, 0, 4, 4, 0, 4, 0, 4, 0, 4}
+
+local function grid_note(x, y) return x + y * 5 + 36 end
+
+local function grid_redraw()
+  g:all(0)
+  for y = 1, 8 do
+    for x = 2, 16 do
+      g:led(x, 9-y, grid_display[grid_note(x, y) % 12])
+    end
+  end
+  for x, row in pairs(grid_held) do
+    for y, _ in pairs(row) do g:led(x, y, 15) end
+  end
+  g:led(1, grid_vel, 15)
+  g:refresh()
+end
+
 local braids_engines = {"CSAW","Morph","Saw Square","Sine Triangle","Buzz","Square Sub","Saw Sub","Square Sync","Saw Sync","Triple Saw","Triple Square","Triple Triangle","Triple Sine","Triple Ring Mod","Saw Swarm","Saw Comb","Toy","Digital Filter Lp","Digital Filter Pk","Digital Filter Bp","Digital Filter Hp","Vosim","Vowel","Vowel Fof","Harmonics","Fm","Feedback Fm","Chaotic Feedback Fm","Plucked","Bowed","Blown","Fluted","Struck Bell","Struck Drum","Kick","Cymbal","Snare","Wavetables","Wave Map","Wave Line","Wave Paraphonic","Filtered Noise","Twin Peaks Noise","Clocked Noise","Granular Cloud","Particle Noise","Digital Modulation","Question Mark"}
 local braids_glyphs = {"CSAW","/\\/|-_-_","/|/|-_-_","FOLD","_|_|_|_|_","-_-_SUB","/|/|SUB","SYN-_-_","SYN/|","/|/|x3","-_-_x3","/\\x3","SIx3","RING","/|/|/|/|","/|/|_|_|_","TOY*","ZLPF","ZPKF","ZBPF","ZHPF","VOSM","VOWL","VFOF","HARM","FM","FBFM","WTFM","PLUK","BOWD","BLOW","FLUTE","BELL","DRUM","KICK","CYMB","SNAR","WTBL","WMAP","WLIN","WTx4","NOIS","TWNQ","CLKN","CLOU","PRTC","QPSK","????"}
 
@@ -216,9 +240,37 @@ end
 
   for k,v in pairs(controls) do
      controls[k].ui:set_value (params:get(k))
-  end  
-  
-  
+  end
+
+  g.key = function(x, y, z)
+    if x == 1 then
+      if z == 1 then
+        grid_vel = y
+        grid_redraw()
+      end
+    else
+      local n = grid_note(x, 9-y)
+      if z == 1 then
+        grid_held[x] = grid_held[x] or {}
+        grid_held[x][y] = true
+        if metarandom then meta_random() end
+        current_note = n
+        params:set("pitch", n)
+        controls.pitch.ui:set_value(n)
+        engine.noteOn(n, grid_velocities[grid_vel])
+        redraw()
+      else
+        if grid_held[x] then
+          grid_held[x][y] = nil
+          if not next(grid_held[x]) then grid_held[x] = nil end
+        end
+        if not next(grid_held) then engine.noteOff(0) end
+      end
+      grid_redraw()
+    end
+  end
+
+  grid_redraw()
   redraw()
 end
 
