@@ -137,6 +137,8 @@ function init()
     if params:get('midi_channel') == 0 or d.ch == params:get('midi_channel') then
       if d.type == "note_on" then
         current_note = d.note
+        controls.pit.ui:set_value(d.note)
+        omi_dials.pit:set_value(d.note)
         engine.noteOn(d.note)
         redraw()
       elseif d.type == "note_off" then
