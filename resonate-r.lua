@@ -45,7 +45,6 @@ local param_assign = {"pitch","structure","brightness","damping","position","mod
 local rings_models = {"Modal Resonator","Sympathetic String","Mod/Inharm String","2-Op Fm Voice","Sympth Str Quant","String And Reverb"}
 local rings_egg_models = {"FX Formant","FX Chorus","FX Reverb","FX Formant","FX Ensemble","FX Reverb"}
 
-local current_note = pitch
 local default_midicc = 32
 
 function init()
