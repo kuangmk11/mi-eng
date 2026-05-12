@@ -65,8 +65,7 @@ params:add_separator ("Modal resonator")
   params:add{type = "control", id = "model", name = "model",
     controlspec = cs.new(0, 2, "lin", 1, 0, ""), action = engine.model}
 
-  --params:add{type = "control", id = "easteregg", name = "easteregg",
-  --  controlspec = cs.new(0, 1, "lin", 1, 0, ""), action = engine.easteregg}
+  -- "synth mode" / easteregg param is added in the script so its action can update synth_mode
 
   params:add{type = "control", id = "mul", name = "mul",
     controlspec = cs.new(0.00, 1.00, "lin", 0.01, 1.0, ""), action = engine.mul}

@@ -1,15 +1,15 @@
 --
 --    modal synth
 --
---    v 0.3.4 @okyeron
+--    v 0.4.0 @okyeron
 --
 --
 --
--- E1: brightness
--- E2: position
--- E3: space
+-- E1: brightness (elements) / pitch (ominous)
+-- E2: position (elements) / strength (ominous)
+-- E3: space (elements) / mul (ominous)
 -- K2: trigger note
--- K3: gate
+-- K3: gate / long press: toggle elements <> ominous voice
 --
 -- Based on the supercollider Mi-UGens by Volker Bohm <https://github.com/v7b1/mi-UGens>
 -- Based on original code by Émilie Gillet <https://github.com/pichenettes/eurorack>
@@ -44,6 +44,11 @@ local model = 0
 local mul = 1.0
 local add = 0
 
+local synth_mode = 0  -- 0=elements, 1=ominous voice
+local key3_hold_time = 0
+local long_press_threshold = 0.5
+local omi_dials = {}
+
 local param_assign = {"contour","bow_level","blow_level","strike_level","pit","strength","flow","mallet","geom","bright","bow_timb","blow_timb","strike_timb","damp","pos","space"}
 local defualt_midich = {32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47}
 local defualt_midicc = 32
@@ -54,7 +59,15 @@ function init()
   -- Add params
   ModalE.add_params()
 
-  -- initialize params  
+  params:add{type = "option", id = "easteregg", name = "synth mode",
+    options = {"Elements", "Ominous Voice"},
+    action = function(v)
+      synth_mode = v - 1
+      engine.easteregg(synth_mode)
+      if omi_dials.pit ~= nil then redraw() end
+    end}
+
+  -- initialize params
   params:set("gate", gate)
   params:set("pit", pit)
   params:set("strength", strength)
@@ -99,64 +112,60 @@ function init()
   -- create midi pmap for 16n
   print ("check pmap")
   local p = norns.pmap.data.contour
-  --p = pmap.get("contour")
   if p == nil then
     local i = defualt_midicc - 1
     for k,v in ipairs(param_assign) do
-      controls[v].midi = i + 1 
+      controls[v].midi = i + 1
       norns.pmap.new(v)
       norns.pmap.assign(v,1,1,controls[v].midi) -- (id, dev, ch, cc)
-      i = i + 1 
+      i = i + 1
     end
     print ("created default pmap")
     norns.pmap.write()
-  else 
-    --print ("already have pmap")
-    --tab.print(norns.pmap.data)
+  else
     for k,v in pairs(norns.pmap.data) do
       if controls[k] ~= nil then
         controls[k].midi = v.cc
       end
     end
-    --tab.print (controls.space)
   end
 
-  -- MIDI  
+  -- MIDI
   local mo = midi.connect() -- defaults to port 1 (which is set in SYSTEM > DEVICES)
-  mo.event = function(data) 
+  mo.event = function(data)
     d = midi.to_msg(data)
     if params:get('midi_channel') == 0 or d.ch == params:get('midi_channel') then
       if d.type == "note_on" then
-        --print ("note-on: ".. d.note .. ", velocity:" .. d.vel)
         current_note = d.note
         engine.noteOn(d.note)
         redraw()
       elseif d.type == "note_off" then
         engine.noteOff(0)
       elseif d.type == "cc" then
-        --print ("cc: ".. d.cc .. " : " .. d.val)
         for k,v in pairs(controls) do
-            if controls[k].midi == d.cc then
-              if k == "pit" then 
-                params:set(k, d.val)
-                controls[k].ui:set_value (d.val)
-              else 
-                params:set(k, d.val/100)
-                controls[k].ui:set_value (d.val/100)
-              end
-            end 
-        end  
+          if controls[k].midi == d.cc then
+            if k == "pit" then
+              params:set(k, d.val)
+              controls[k].ui:set_value(d.val)
+              current_note = d.val
+            else
+              params:set(k, d.val/100)
+              controls[k].ui:set_value(d.val/100)
+            end
+          end
+        end
+        sync_omi_dials()
       end
       redraw()
-    end 
+    end
   end
-  
 
-  -- UI
+
+  -- Elements UI
   local row1 = 12
   local row2 = 30
   local row3 = 48
-  
+
   local offset = 18
   local col1 = 3
   local col2 = col1+offset
@@ -165,7 +174,6 @@ function init()
   local col5 = col4+offset
   local col6 = col5+offset
   local col7 = col6+offset
-
 
   controls.contour.ui = UI.Dial.new(col1, row1, 10, contour, 0, 1, 0.01, 0, {},"", "cont")
   controls.bow_level.ui = UI.Dial.new(col2, row1, 10, bow_level, 0, 1, 0.01, 0, {},"", "bow")
@@ -178,7 +186,7 @@ function init()
   controls.mallet.ui = UI.Dial.new(col3+10, row2, 10, mallet, 0, 1, 0.01, 0, {},"", "mal")
   controls.geom.ui = UI.Dial.new(col5, row2, 10, geom, 0, 1, 0.01, 0, {},"", "geo")
   controls.bright.ui = UI.Dial.new(col6, row2, 10, bright, 0, 1, 0.01, 0, {},"", "brit")
-  
+
   controls.bow_timb.ui = UI.Dial.new(col2, row3, 10, bow_timb, 0, 1, 0.01, 0, {},"", "btm")
   controls.blow_timb.ui = UI.Dial.new(col3, row3, 10, blow_timb, 0, 1, 0.01, 0, {},"", "bltm")
   controls.strike_timb.ui = UI.Dial.new(col4, row3, 10, strike_timb, 0, 1, 0.01, 0, {},"", "stim")
@@ -186,15 +194,20 @@ function init()
   controls.pos.ui = UI.Dial.new(col6, row3, 10, pos, 0, 1, 0.01, 0, {},"", "pos")
   controls.space.ui = UI.Dial.new(col7, row3, 10, space, 0, 1, 0.01, 0, {},"", "spc")
 
-
   for k,v in pairs(controls) do
-     controls[k].ui:set_value (params:get(k))
+    controls[k].ui:set_value(params:get(k))
   end
+
+  -- Ominous Voice UI (3 centered dials)
+  omi_dials.pit      = UI.Dial.new(10, 25, 10, params:get("pit"),      0, 127, 1,    0, {}, "", "pit")
+  omi_dials.strength = UI.Dial.new(54, 25, 10, params:get("strength"), 0, 1,   0.01, 0, {}, "", "str")
+  omi_dials.mul      = UI.Dial.new(98, 25, 10, params:get("mul"),      0, 1,   0.01, 0, {}, "", "mul")
 
   IntervalsGrid.init(
     function(n, vel)
       current_note = n
       controls.pit.ui:set_value(n)
+      omi_dials.pit:set_value(n)
       engine.noteOn(n)
       redraw()
     end,
@@ -204,75 +217,111 @@ function init()
   redraw()
 end
 
-function key(n,z)
-  -- key actions: n = number, z = state
-  if n == 2 and z == 1 then
-    engine.noteOn(pit)
-    --print('noteon')
-  else
-    engine.noteOff(0)
-  end
-
-  if n == 3 and z == 1 then
-    engine.gate(1)
-    --print('gate')
-  else
-    engine.gate(0)
-  end
-  
+function sync_omi_dials()
+  omi_dials.pit:set_value(params:get("pit"))
+  omi_dials.strength:set_value(params:get("strength"))
+  omi_dials.mul:set_value(params:get("mul"))
 end
 
-function enc(n,d)
-  -- encoder actions: n = number, d = delta
-  if n == 1 then
-    params:delta("bright", d)
-    --print("blow_level", string.format("%.2f", params:get("bright")))
-    controls.bright.ui:set_value (params:get("bright"))
+function toggle_synth_mode()
+  engine.gate(0)
+  engine.noteOff(0)
+  params:set("easteregg", (synth_mode == 0) and 2 or 1)
+end
 
-  elseif n == 2 then
-    params:delta("pos", d)
-    --print("strike_level", string.format("%.2f", params:get("pos")))
-     controls.pos.ui:set_value (params:get("pos"))
-     
+function key(n, z)
+  if n == 2 then
+    if z == 1 then engine.noteOn(current_note)
+    else engine.noteOff(0) end
   elseif n == 3 then
-    params:delta("space", d)
-    --print("flow", string.format("%.2f", params:get("space")))
-     controls.space.ui:set_value (params:get("space"))
-     
+    if z == 1 then
+      key3_hold_time = util.time()
+      engine.gate(1)
+    else
+      engine.gate(0)
+      if util.time() - key3_hold_time >= long_press_threshold then
+        toggle_synth_mode()
+      end
+    end
+  end
+end
+
+function enc(n, d)
+  if synth_mode == 0 then
+    if n == 1 then
+      params:delta("bright", d)
+      controls.bright.ui:set_value(params:get("bright"))
+    elseif n == 2 then
+      params:delta("pos", d)
+      controls.pos.ui:set_value(params:get("pos"))
+    elseif n == 3 then
+      params:delta("space", d)
+      controls.space.ui:set_value(params:get("space"))
+    end
+  else
+    if n == 1 then
+      params:delta("pit", d)
+      current_note = params:get("pit")
+      controls.pit.ui:set_value(current_note)
+      omi_dials.pit:set_value(current_note)
+    elseif n == 2 then
+      params:delta("strength", d)
+      omi_dials.strength:set_value(params:get("strength"))
+    elseif n == 3 then
+      params:delta("mul", d)
+      omi_dials.mul:set_value(params:get("mul"))
+    end
   end
   redraw()
 end
 
 function change_midi_channel(d)
-  -- shush everything
   engine.noteOff(0)
 end
 
 function redraw()
-  -- screen redraw
   screen.clear()
   screen.aa(1)
   screen.level(15)
-
-  screen.move(0,0)
+  screen.move(0, 0)
   screen.stroke()
 
- for k,v in pairs(controls) do
-    controls[k].ui:redraw()
-  end 
-
-  screen.move(3, 8)
-  screen.font_face(1)
-  screen.font_size(8)
-  screen.text("modal synth ")
-
-  --screen.font_face(1)
-  --screen.font_size(8)
-  --screen.move(90, 8)
-  --screen.text("note:  ")
-  --screen.move(120, 8)
-  --screen.text_right(current_note)
-
+  if synth_mode == 0 then
+    for k, v in pairs(controls) do
+      controls[k].ui:redraw()
+    end
+    screen.move(3, 8)
+    screen.font_face(1)
+    screen.font_size(8)
+    screen.text("modal synth")
+    screen.move(125, 8)
+    screen.font_size(6)
+    screen.level(4)
+    screen.text_right("omi K3>")
+    screen.level(15)
+  else
+    for k, _ in pairs(omi_dials) do
+      omi_dials[k]:redraw()
+    end
+    screen.move(3, 8)
+    screen.font_face(1)
+    screen.font_size(8)
+    screen.text("ominous voice")
+    screen.move(125, 8)
+    screen.font_size(6)
+    screen.level(4)
+    screen.text_right("elm K3>")
+    screen.level(15)
+    screen.move(10, 58)
+    screen.font_size(6)
+    screen.level(3)
+    screen.text("E1 pit")
+    screen.move(64, 58)
+    screen.text_center("E2 str")
+    screen.move(118, 58)
+    screen.text_right("E3 mul")
+    screen.level(15)
+  end
 
   screen.update()
 end
