@@ -12,7 +12,7 @@ Engine_ModalE : CroneEngine {
   }
 
   alloc {
-  	
+
     SynthDef(\ModalE, {
       arg out, inL, inR, gate=0, pit=48, strength=0.5, contour=0.2, bow_level=0,
 		blow_level=0, strike_level=0, flow=0.5, mallet=0.5, bow_timb=0.5, blow_timb=0.5,
@@ -130,7 +130,7 @@ Engine_ModalE : CroneEngine {
     this.addCommand("add", "f", {|msg|
       synth.set(\add, msg[1]);
     });
-  
+
 
   }
 

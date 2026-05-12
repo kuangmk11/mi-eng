@@ -45,7 +45,7 @@ local mul = 1.0
 local add = 0
 
 local synth_mode = 0  -- 0=elements, 1=ominous voice
-local key3_hold_time = 0
+local key3_hold_time = nil
 local long_press_threshold = 0.5
 local omi_dials = {}
 
@@ -198,10 +198,10 @@ function init()
     controls[k].ui:set_value(params:get(k))
   end
 
-  -- Ominous Voice UI (3 centered dials)
-  omi_dials.pit      = UI.Dial.new(10, 25, 10, params:get("pit"),      0, 127, 1,    0, {}, "", "pit")
-  omi_dials.strength = UI.Dial.new(54, 25, 10, params:get("strength"), 0, 1,   0.01, 0, {}, "", "str")
-  omi_dials.mul      = UI.Dial.new(98, 25, 10, params:get("mul"),      0, 1,   0.01, 0, {}, "", "mul")
+  -- Ominous Voice UI (3 centered dials: pitch, carrier level, FM ratio)
+  omi_dials.pit       = UI.Dial.new(10, 25, 10, params:get("pit"),       0, 127, 1,    0, {}, "", "pit")
+  omi_dials.blow_level = UI.Dial.new(54, 25, 10, params:get("blow_level"), 0, 1,   0.01, 0, {}, "", "lvl")
+  omi_dials.flow      = UI.Dial.new(98, 25, 10, params:get("flow"),      0, 1,   0.01, 0, {}, "", "flow")
 
   IntervalsGrid.init(
     function(n, vel)
@@ -219,13 +219,18 @@ end
 
 function sync_omi_dials()
   omi_dials.pit:set_value(params:get("pit"))
-  omi_dials.strength:set_value(params:get("strength"))
-  omi_dials.mul:set_value(params:get("mul"))
+  omi_dials.blow_level:set_value(params:get("blow_level"))
+  omi_dials.flow:set_value(params:get("flow"))
 end
 
 function toggle_synth_mode()
   engine.gate(0)
   engine.noteOff(0)
+  -- ominous voice needs blow_level > 0 as carrier amplitude; set a default if unset
+  if synth_mode == 0 and params:get("blow_level") == 0 then
+    params:set("blow_level", 0.5)
+    controls.blow_level.ui:set_value(0.5)
+  end
   params:set("easteregg", (synth_mode == 0) and 2 or 1)
 end
 
@@ -239,9 +244,10 @@ function key(n, z)
       engine.gate(1)
     else
       engine.gate(0)
-      if util.time() - key3_hold_time >= long_press_threshold then
+      if key3_hold_time and util.time() - key3_hold_time >= long_press_threshold then
         toggle_synth_mode()
       end
+      key3_hold_time = nil
     end
   end
 end
@@ -265,11 +271,13 @@ function enc(n, d)
       controls.pit.ui:set_value(current_note)
       omi_dials.pit:set_value(current_note)
     elseif n == 2 then
-      params:delta("strength", d)
-      omi_dials.strength:set_value(params:get("strength"))
+      params:delta("blow_level", d)
+      controls.blow_level.ui:set_value(params:get("blow_level"))
+      omi_dials.blow_level:set_value(params:get("blow_level"))
     elseif n == 3 then
-      params:delta("mul", d)
-      omi_dials.mul:set_value(params:get("mul"))
+      params:delta("flow", d)
+      controls.flow.ui:set_value(params:get("flow"))
+      omi_dials.flow:set_value(params:get("flow"))
     end
   end
   redraw()
@@ -282,6 +290,8 @@ end
 function redraw()
   screen.clear()
   screen.aa(1)
+  screen.font_face(1)
+  screen.font_size(8)
   screen.level(15)
   screen.move(0, 0)
   screen.stroke()
@@ -317,9 +327,9 @@ function redraw()
     screen.level(3)
     screen.text("E1 pit")
     screen.move(64, 58)
-    screen.text_center("E2 str")
+    screen.text_center("E2 lvl")
     screen.move(118, 58)
-    screen.text_right("E3 mul")
+    screen.text_right("E3 flow")
     screen.level(15)
   end
 
