@@ -120,11 +120,11 @@ function init()
       if d.type == "note_on" then
         --print ("note-on: ".. d.note .. ", velocity:" .. d.vel)
         current_note = d.note
-        params:set("pitch",d.note)
-        params:set("trig",1)
+        params:set("pitch", d.note - 60)
+        params:set("trig", 2)
         redraw()
       elseif d.type == "note_off" then
-        params:set("trig",0)
+        params:set("trig", 1)
       elseif d.type == "cc" then
         --print ("cc: ".. d.cc .. " : " .. d.val)
         for k,v in pairs(controls) do
@@ -181,11 +181,11 @@ function init()
 
   IntervalsGrid.init(
     function(n, vel)
-      params:set("pitch", n)
-      params:set("trig", 1)
+      params:set("pitch", n - 60)
+      params:set("trig", 2)
       redraw()
     end,
-    function() params:set("trig", 0) end
+    function() params:set("trig", 1) end
   )
 
   redraw()

@@ -115,6 +115,8 @@ function init()
 
   -- Add params
   ResonateR.add_params()
+  params:set("pitch_from_midi", 1)
+  params:set("ping_resonator", 1)
 
     -- initialization
   params:set("pitch", pitch)
