@@ -18,6 +18,7 @@
 
 local UI = require "ui"
 local ModalE = require "mi-eng/lib/ModalE_engine"
+local IntervalsGrid = include "mi-eng/lib/intervals_grid"
 
 engine.name = "ModalE"
 
@@ -188,8 +189,18 @@ function init()
 
   for k,v in pairs(controls) do
      controls[k].ui:set_value (params:get(k))
-  end 
-    
+  end
+
+  IntervalsGrid.init(
+    function(n, vel)
+      current_note = n
+      controls.pit.ui:set_value(n)
+      engine.noteOn(n)
+      redraw()
+    end,
+    function() engine.noteOff(0) end
+  )
+
   redraw()
 end
 

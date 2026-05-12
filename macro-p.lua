@@ -17,6 +17,7 @@
 
 local UI = require "ui"
 local MacroP = require "mi-eng/lib/MacroP_engine"
+local IntervalsGrid = include "mi-eng/lib/intervals_grid"
 
 engine.name = "MacroP"
 
@@ -182,8 +183,17 @@ function init()
 
   for k,v in pairs(controls) do
      controls[k].ui:set_value (params:get(k))
-  end  
-  
+  end
+
+  IntervalsGrid.init(
+    function(n, vel)
+      current_note = n
+      engine.noteOn(n, vel)
+      redraw()
+    end,
+    function() engine.noteOff(0) end
+  )
+
   redraw()
 end
 

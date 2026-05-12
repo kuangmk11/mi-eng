@@ -17,6 +17,7 @@
 
 local UI = require "ui"
 local ResonateR = require "mi-eng/lib/ResonateR_engine"
+local IntervalsGrid = include "mi-eng/lib/intervals_grid"
 
 engine.name = "ResonateR"
 
@@ -163,8 +164,20 @@ function init()
  
   for k,v in pairs(controls) do
      controls[k].ui:set_value (params:get(k))
-  end  
+  end
   initialisation = 0
+
+  IntervalsGrid.init(
+    function(n, vel)
+      current_note = n
+      params:set("pitch", n)
+      controls.pitch.ui:set_value(n)
+      engine.noteOn(n)
+      redraw()
+    end,
+    function() engine.noteOff(0) end
+  )
+
   redraw()
 end
 

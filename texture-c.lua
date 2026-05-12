@@ -21,6 +21,7 @@
 
 local UI = require "ui"
 local TextureC = include "mi-eng/lib/TextureC_engine"
+local IntervalsGrid = include "mi-eng/lib/intervals_grid"
 
 engine.name = "TextureC"
 
@@ -176,9 +177,17 @@ function init()
 
   for k,v in pairs(controls) do
      controls[k].ui:set_value (params:get(k))
-  end  
-  
-  
+  end
+
+  IntervalsGrid.init(
+    function(n, vel)
+      params:set("pitch", n)
+      params:set("trig", 1)
+      redraw()
+    end,
+    function() params:set("trig", 0) end
+  )
+
   redraw()
 end
 
