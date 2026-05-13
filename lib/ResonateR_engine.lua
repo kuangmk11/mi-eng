@@ -51,6 +51,9 @@ function ResonateR.add_params()
   params:add_control("pitch_from_midi", "pitch_from_midi", controlspec.new(0, 1, "lin", 1, pitch_from_midi, ""))
   params:add_control("ping_resonator", "ping_resonator", controlspec.new(0, 1, "lin", 1, ping_resonator, ""))
 
+  params:add{type = "control", id = "mul", name = "mul",
+    controlspec = cs.new(0.00, 1.00, "lin", 0.01, 1.0, ""), action = engine.mul}
+
   params:add_separator("Reverb")
   params:add{type = "control", id = "verb_time", name = "verb time",
     controlspec = cs.new(0.0, 1.25, "lin", 0.01, 0.5, ""), action = engine.verb_time}

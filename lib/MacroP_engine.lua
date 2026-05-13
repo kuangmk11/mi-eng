@@ -48,6 +48,9 @@ function MacroP.add_params()
   params:add{type = "control", id = "lpg_colour", name = "lpg_colour",
     controlspec = cs.new(0.00, 1.00, "lin", 0.01, 0, ""), action = engine.lpg_colour}
 
+  params:add{type = "control", id = "mul", name = "mul",
+    controlspec = cs.new(0.00, 1.00, "lin", 0.01, 1.0, ""), action = engine.mul}
+
   params:add_separator("Reverb")
   params:add{type = "control", id = "verb_time", name = "verb time",
     controlspec = cs.new(0.0, 1.25, "lin", 0.01, 0.5, ""), action = engine.verb_time}

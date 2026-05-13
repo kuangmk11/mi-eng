@@ -61,6 +61,7 @@ function init()
   controls.intern_exciter = {ui = nil, midi = nil,}
   controls.bypass = {ui = nil, midi = nil,}
   controls.easteregg = {ui = nil, midi = nil,}
+  controls.mul = {ui = nil, midi = nil,}
   controls.verb_wet = {ui = nil, midi = nil,}
 
   params:add{type = "control", id = "midi_channel", name = "MIDI channel",
@@ -163,6 +164,7 @@ function init()
   controls.intern_exciter.ui = UI.Dial.new(col2, row3, 10, 0, 0, 1, 0.01, 0, {},"", "exci")
   controls.bypass.ui =      UI.Dial.new(col3, row3, 10, 0, 0, 1, 0.01, 0, {},"", "byp")
   controls.easteregg.ui =   UI.Dial.new(col4, row3, 10, 0, 0, 1, 0.01, 0, {},"", "egg")
+  controls.mul.ui =         UI.Dial.new(col2, row1, 10, 0, 0, 1, 0.01, 0, {},"", "mul")
   controls.verb_wet.ui =    UI.Dial.new(col5, row3, 10, 0, 0, 1, 0.01, 0, {},"", "wet")
 
   for k,v in pairs(controls) do

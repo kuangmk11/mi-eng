@@ -67,6 +67,7 @@ function init()
   controls.level = {ui = nil, midi = nil,}
   controls.decay = {ui = nil, midi = nil,}
   controls.lpg_colour = {ui = nil, midi = nil,}
+  controls.mul = {ui = nil, midi = nil,}
   controls.verb_wet = {ui = nil, midi = nil,}
   controls.verb_time = {ui = nil, midi = nil,}
 
@@ -184,6 +185,7 @@ function init()
   controls.decay.ui = UI.Dial.new(col3, row2, 10, 0, 0, 1, 0.01, 0, {},"", "dec")
   controls.lpg_colour.ui = UI.Dial.new(col4, row2, 10, 0, 0, 1, 0.01, 0, {},"", "lpgc")
 
+  controls.mul.ui =       UI.Dial.new(col5, row2, 10, 0, 0, 1,    0.01, 0, {},"", "mul")
   controls.verb_wet.ui =  UI.Dial.new(col2, row3, 10, 0, 0, 1,    0.01, 0, {},"", "wet")
   controls.verb_time.ui = UI.Dial.new(col3, row3, 10, 0, 0, 1.25, 0.01, 0, {},"", "rvb")
 
