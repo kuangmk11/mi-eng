@@ -40,6 +40,7 @@ local mode = 0 -- (0 -- 3)
 local lofi = 0 -- (0 -- 1)
 local trig = 0 -- (0 -- 1)
 
+local current_note = 60
 local controls = {}
 local param_assign = {"pitch","position","grainsize","density","texture","drywet","in_gain","reverb","spread","feedback","freeze","mode","lofi"}
 local clouds_mode = {"Granular","Stretch","Looping_Delay","Spectral"}
@@ -118,9 +119,9 @@ function init()
     d = midi.to_msg(data)
     if params:get('midi_channel') == 0 or d.ch == params:get('midi_channel') then
       if d.type == "note_on" then
-        --print ("note-on: ".. d.note .. ", velocity:" .. d.vel)
         current_note = d.note
         params:set("pitch", d.note - 60)
+        controls.pitch.ui:set_value(d.note - 60)
         params:set("trig", 2)
         redraw()
       elseif d.type == "note_off" then
@@ -159,7 +160,7 @@ function init()
 
   local col8 = 116
   
-  controls.pitch.ui = UI.Dial.new(col1, row1, 10, 0, 0, 1, 0.01, 0, {},"", "pit")
+  controls.pitch.ui = UI.Dial.new(col1, row1, 10, 0, -48, 48, 1, 0, {},"", "pit")
   controls.position.ui = UI.Dial.new(col2, row1, 10, 0, 0, 1, 0.01, 0, {},"", "pos")
   controls.grainsize.ui = UI.Dial.new(col3, row1, 10, 0, 0, 1, 0.01, 0, {},"", "size")
   controls.density.ui = UI.Dial.new(col4, row1, 10, 0, 0, 1, 0.01, 0, {},"", "den")
@@ -181,7 +182,9 @@ function init()
 
   IntervalsGrid.init(
     function(n, vel)
+      current_note = n
       params:set("pitch", n - 60)
+      controls.pitch.ui:set_value(n - 60)
       params:set("trig", 2)
       redraw()
     end,

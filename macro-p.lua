@@ -101,8 +101,9 @@ function init()
     d = midi.to_msg(data)
     if params:get('midi_channel') == 0 or d.ch == params:get('midi_channel') then
       if d.type == "note_on" then
-        print ("note-on: ".. d.note .. ", velocity:" .. d.vel)
         current_note = d.note
+        params:set("pitch", d.note)
+        controls.pitch.ui:set_value(d.note)
         engine.noteOn(d.note, d.vel)
         redraw()
       elseif d.type == "note_off" then
@@ -188,6 +189,8 @@ function init()
   IntervalsGrid.init(
     function(n, vel)
       current_note = n
+      params:set("pitch", n)
+      controls.pitch.ui:set_value(n)
       engine.noteOn(n, vel)
       redraw()
     end,
@@ -199,12 +202,10 @@ end
 
 function key(n,z)
   if n == 2 and z == 1 then
-    engine.noteOn(60,64)
+    engine.noteOn(current_note, 64)
   else
     engine.noteOff(0)
   end
-  
-  -- key actions: n = number, z = state
 end
 
 function enc(n,d)

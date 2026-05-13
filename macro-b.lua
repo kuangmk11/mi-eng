@@ -238,12 +238,10 @@ end
 
 function key(n,z)
   if n == 2 and z == 1 then
-    engine.noteOn(60,64)
+    engine.noteOn(current_note, 64)
   else
     engine.noteOff(0)
   end
-  
-  -- key actions: n = number, z = state
 end
 
 function enc(n,d)
