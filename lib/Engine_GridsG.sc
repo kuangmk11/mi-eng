@@ -46,12 +46,14 @@ Engine_GridsG : CroneEngine {
                          0, reset_ar, 0,
                          0, swing, 0, 2);
 
-      bd_trig = grids[0];
-      sd_trig = grids[1];
-      hh_trig = grids[2];
+      // Trig1 converts gate pulses to clean 10ms triggers for EnvGen
+      bd_trig = Trig1.ar(grids[0], 0.01);
+      sd_trig = Trig1.ar(grids[1], 0.01);
+      hh_trig = Trig1.ar(grids[2], 0.01);
 
       // BD: 808-style sine kick with pitch envelope
-      bd_pitch = EnvGen.ar(Env.new([bd_tune * 3, bd_tune], [0.04], [-8]), bd_trig);
+      // pitch sweep computed arithmetically to avoid dynamic Env level issues
+      bd_pitch = bd_tune + (bd_tune * 2 * EnvGen.ar(Env.perc(0.001, 0.08, 1, -8), bd_trig));
       bd = SinOsc.ar(bd_pitch) *
            EnvGen.ar(Env.perc(0.005, bd_decay, 1, -4), bd_trig) * bd_vol;
 
