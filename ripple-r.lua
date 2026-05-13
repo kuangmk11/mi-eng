@@ -1,7 +1,7 @@
 --
 --   ripple filter
 --
---   v0.1.0 @okyeron
+--   v0.1.0 @kuangmk11
 --
 --
 -- E1: cutoff (cf)
@@ -12,6 +12,7 @@
 --
 -- audio in[0] = signal to filter
 --
+-- Based on the norns scripts by okyeron <https://github.com/okyeron/mi-eng>
 -- Based on the supercollider Mi-UGens by Volker Bohm <https://github.com/v7b1/mi-UGens>
 -- Based on original code by Émilie Gillet <https://github.com/pichenettes/eurorack>
 --
