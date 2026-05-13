@@ -12,11 +12,13 @@ Engine_MacroP : CroneEngine {
   alloc {
   	
     SynthDef(\MacroP, {
-      arg out, pitch=60.0, eng=0, harm=0.1, timbre=0.5, morph=0.5, trigger=0.0, level=0, fm_mod=0.0, timb_mod=0.0, morph_mod=0.0, decay=0.5, lpg_colour=0.5, mul=0.3;
-      var sound = {
-        MiPlaits.ar(pitch,eng,harm,timbre,morph,trigger,level,fm_mod,timb_mod,morph_mod,lpg_colour,mul)!2; 
-      };
-      Out.ar(out, sound);
+      arg out, pitch=60.0, eng=0, harm=0.1, timbre=0.5, morph=0.5, trigger=0.0, level=0, fm_mod=0.0, timb_mod=0.0, morph_mod=0.0, decay=0.5, lpg_colour=0.5, mul=0.3,
+            // reverb
+            verb_time=0.5, verb_wet=0.0, verb_damp=0.5, verb_hp=0.05, verb_diff=0.625;
+      var sound, verbOut;
+      sound = MiPlaits.ar(pitch,eng,harm,timbre,morph,trigger,level,fm_mod,timb_mod,morph_mod,lpg_colour,mul) !2;
+      verbOut = MiVerb.ar(sound, verb_time, verb_wet, verb_damp, verb_hp, 0, verb_diff);
+      Out.ar(out, verbOut);
     }).add;
 
     context.server.sync;
@@ -35,7 +37,12 @@ Engine_MacroP : CroneEngine {
 		\morph_mod, 0.0,
 		\decay, 0.5,
 		\lpg_colour, 0.5,
-		\mul, 0.3
+		\mul, 0.3,
+		\verb_time, 0.5,
+		\verb_wet, 0.0,
+		\verb_damp, 0.5,
+		\verb_hp, 0.05,
+		\verb_diff, 0.625
       ],
     context.xg);
 
@@ -92,7 +99,15 @@ Engine_MacroP : CroneEngine {
     this.addCommand("mul", "f", {|msg|
       synth.set(\mul, msg[1]);
     });
-   
+    this.addCommand("verb_time", "f", {|msg|
+      synth.set(\verb_time, msg[1]);
+    });
+    this.addCommand("verb_wet", "f", {|msg|
+      synth.set(\verb_wet, msg[1]);
+    });
+    this.addCommand("verb_damp", "f", {|msg|
+      synth.set(\verb_damp, msg[1]);
+    });
 
   }
 

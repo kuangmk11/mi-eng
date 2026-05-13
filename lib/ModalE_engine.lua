@@ -69,6 +69,14 @@ params:add_separator ("Modal resonator")
 
   params:add{type = "control", id = "mul", name = "mul",
     controlspec = cs.new(0.00, 1.00, "lin", 0.01, 1.0, ""), action = engine.mul}
+
+  params:add_separator("Reverb")
+  params:add{type = "control", id = "verb_time", name = "verb time",
+    controlspec = cs.new(0.0, 1.25, "lin", 0.01, 0.5, ""), action = engine.verb_time}
+  params:add{type = "control", id = "verb_wet", name = "verb wet",
+    controlspec = cs.new(0.0, 1.0, "lin", 0.01, 0.0, ""), action = engine.verb_wet}
+  params:add{type = "control", id = "verb_damp", name = "verb damp",
+    controlspec = cs.new(0.0, 1.0, "lin", 0.01, 0.5, ""), action = engine.verb_damp}
 end
 
 return ModalE

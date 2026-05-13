@@ -15,15 +15,16 @@ Engine_ModalE : CroneEngine {
 
     SynthDef(\ModalE, {
       arg out, inL, inR, gate=0, pit=48, strength=0.5, contour=0.2, bow_level=0,
-		blow_level=0, strike_level=0, flow=0.5, mallet=0.5, bow_timb=0.5, blow_timb=0.5,
-		strike_timb=0.5, geom=0.25, bright=0.5, damp=0.7, pos=0.2, space=0.3, model=0,
-		easteregg=0, mul=1.0, add=0;
-	
-      var sound, outL, outR;
-      sound = MiElements.ar(SoundIn.ar(0),SoundIn.ar(1),gate,pit,strength,contour,bow_level,blow_level,strike_level,flow,mallet,bow_timb,blow_timb,strike_timb,geom,bright,damp,pos,space,model,easteregg,mul,add); 
-      outL = sound[0];
-	  outR = sound[1];
-      Out.ar(out, [outL, outR]);
+            blow_level=0, strike_level=0, flow=0.5, mallet=0.5, bow_timb=0.5, blow_timb=0.5,
+            strike_timb=0.5, geom=0.25, bright=0.5, damp=0.7, pos=0.2, space=0.3, model=0,
+            easteregg=0, mul=1.0, add=0,
+            // reverb
+            verb_time=0.5, verb_wet=0.0, verb_damp=0.5, verb_hp=0.05, verb_diff=0.625;
+
+      var sound, verbOut;
+      sound = MiElements.ar(SoundIn.ar(0),SoundIn.ar(1),gate,pit,strength,contour,bow_level,blow_level,strike_level,flow,mallet,bow_timb,blow_timb,strike_timb,geom,bright,damp,pos,space,model,easteregg,mul,add);
+      verbOut = MiVerb.ar(sound, verb_time, verb_wet, verb_damp, verb_hp, 0, verb_diff);
+      Out.ar(out, verbOut);
     }).add;
 
     context.server.sync;
@@ -52,7 +53,12 @@ Engine_ModalE : CroneEngine {
 		\model, 0,
 		\easteregg, 0,
 		\mul, 1.0,
-		\add, 0
+		\add, 0,
+		\verb_time, 0.5,
+		\verb_wet, 0.0,
+		\verb_damp, 0.5,
+		\verb_hp, 0.05,
+		\verb_diff, 0.625
       ],
     context.xg);
 
@@ -130,7 +136,15 @@ Engine_ModalE : CroneEngine {
     this.addCommand("add", "f", {|msg|
       synth.set(\add, msg[1]);
     });
-
+    this.addCommand("verb_time", "f", {|msg|
+      synth.set(\verb_time, msg[1]);
+    });
+    this.addCommand("verb_wet", "f", {|msg|
+      synth.set(\verb_wet, msg[1]);
+    });
+    this.addCommand("verb_damp", "f", {|msg|
+      synth.set(\verb_damp, msg[1]);
+    });
 
   }
 

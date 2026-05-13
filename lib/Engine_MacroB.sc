@@ -14,16 +14,16 @@ Engine_MacroB : CroneEngine {
   alloc {
   	
     SynthDef(\MacroB, {
-      arg out, pitch=60.0, timbre=0.5, color=0.5, model=0, trig=0, resamp=0, decim=0, bits=0, ws=0, mul=0.3, gate=0, 
-      		// amplitude envelope params
-			ampAtk=0.05, ampDec=0.1, ampSus=1.0, ampRel=1.0, ampCurve= -1.0;
-      var aenv, sound;
+      arg out, pitch=60.0, timbre=0.5, color=0.5, model=0, trig=0, resamp=0, decim=0, bits=0, ws=0, mul=0.3, gate=0,
+            // amplitude envelope params
+            ampAtk=0.05, ampDec=0.1, ampSus=1.0, ampRel=1.0, ampCurve= -1.0,
+            // reverb
+            verb_time=0.5, verb_wet=0.0, verb_damp=0.5, verb_hp=0.05, verb_diff=0.625;
+      var aenv, sound, verbOut;
       aenv = EnvGen.ar(Env.adsr(ampAtk, ampDec, ampSus, ampRel, 1.0, ampCurve), gate: gate, doneAction:0);
-      sound = {
-        MiBraids.ar(pitch, timbre, color, model, trig, resamp, decim, bits, ws, mul)!2; 
-      };
-		
-      Out.ar(out, sound * aenv);
+      sound = MiBraids.ar(pitch, timbre, color, model, trig, resamp, decim, bits, ws, mul) !2 * aenv;
+      verbOut = MiVerb.ar(sound, verb_time, verb_wet, verb_damp, verb_hp, 0, verb_diff);
+      Out.ar(out, verbOut);
     }).add;
 
     context.server.sync;
@@ -40,11 +40,16 @@ Engine_MacroB : CroneEngine {
 		\bits, 0,
 		\ws, 0,
 		\mul, 0.3,
-		\ampAtk, 0.05, 
-		\ampDec, 0.1, 
-		\ampSus, 1.0, 
-		\ampRel, 1.0, 
-		\ampCurve, -1.0
+		\ampAtk, 0.05,
+		\ampDec, 0.1,
+		\ampSus, 1.0,
+		\ampRel, 1.0,
+		\ampCurve, -1.0,
+		\verb_time, 0.5,
+		\verb_wet, 0.0,
+		\verb_damp, 0.5,
+		\verb_hp, 0.05,
+		\verb_diff, 0.625
       ],
     context.xg);
 
@@ -103,7 +108,15 @@ Engine_MacroB : CroneEngine {
     this.addCommand("ampRel", "f", {|msg|
       synth.set(\ampRel, msg[1]);
     });
-   
+    this.addCommand("verb_time", "f", {|msg|
+      synth.set(\verb_time, msg[1]);
+    });
+    this.addCommand("verb_wet", "f", {|msg|
+      synth.set(\verb_wet, msg[1]);
+    });
+    this.addCommand("verb_damp", "f", {|msg|
+      synth.set(\verb_damp, msg[1]);
+    });
 
   }
 
