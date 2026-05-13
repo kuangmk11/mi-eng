@@ -4,19 +4,16 @@
 --   v0.1.0 @okyeron
 --
 --
--- E1: cutoff
+-- E1: cutoff (cf)
 -- E2: resonance
--- E3: gain (VCA)
+-- E3: drive
 -- K2: snap cutoff to current note
 -- grid/MIDI: set filter cutoff by note
 --
 -- audio in[0] = signal to filter
--- audio in[1] = FM source (optional, scaled by fm param)
 --
 -- Based on the supercollider Mi-UGens by Volker Bohm <https://github.com/v7b1/mi-UGens>
 -- Based on original code by Émilie Gillet <https://github.com/pichenettes/eurorack>
---
--- requires MiRipples.so in ~/.local/share/SuperCollider/Extensions/MiRipples/
 --
 
 local UI = require "ui"
@@ -35,10 +32,9 @@ local current_note = 60
 function init()
 
   controls = {}
-  controls.cutoff    = {ui = nil, midi = nil}
-  controls.resonance = {ui = nil, midi = nil}
-  controls.fm        = {ui = nil, midi = nil}
-  controls.gain      = {ui = nil, midi = nil}
+  controls.cf        = {ui = nil, midi = nil}
+  controls.reson     = {ui = nil, midi = nil}
+  controls.drive     = {ui = nil, midi = nil}
   controls.mul       = {ui = nil, midi = nil}
   controls.verb_wet  = {ui = nil, midi = nil}
   controls.verb_time = {ui = nil, midi = nil}
@@ -53,8 +49,8 @@ function init()
       if d.type == "note_on" then
         current_note = d.note
         local c = d.note / 127
-        params:set("cutoff", c)
-        controls.cutoff.ui:set_value(c)
+        params:set("cf", c)
+        controls.cf.ui:set_value(c)
         IntervalsGrid.note_on(d.note)
         redraw()
       elseif d.type == "note_off" then
@@ -65,10 +61,9 @@ function init()
 
   RippleR.add_params()
 
-  params:set("cutoff",    0.5)
-  params:set("resonance", 0.5)
-  params:set("fm",        0.0)
-  params:set("gain",      1.0)
+  params:set("cf",    0.3)
+  params:set("reson", 0.5)
+  params:set("drive", 1.0)
 
   -- UI
   local row1 = 11
@@ -80,14 +75,13 @@ function init()
   local col3 = col2 + offset
   local col4 = col3 + offset
 
-  controls.cutoff.ui    = UI.Dial.new(col1, row1, 10, 0, 0, 1,    0.01, 0, {}, "", "cut")
-  controls.resonance.ui = UI.Dial.new(col2, row1, 10, 0, 0, 1,    0.01, 0, {}, "", "res")
-  controls.fm.ui        = UI.Dial.new(col3, row1, 10, 0, 0, 1,    0.01, 0, {}, "", "fm")
-  controls.gain.ui      = UI.Dial.new(col4, row1, 10, 0, 0, 1,    0.01, 0, {}, "", "gain")
+  controls.cf.ui    = UI.Dial.new(col1, row1, 10, 0, 0, 1,   0.01, 0, {}, "", "cut")
+  controls.reson.ui = UI.Dial.new(col2, row1, 10, 0, 0, 1,   0.01, 0, {}, "", "res")
+  controls.drive.ui = UI.Dial.new(col3, row1, 10, 0, 0, 2,   0.01, 0, {}, "", "drv")
+  controls.mul.ui   = UI.Dial.new(col4, row1, 10, 0, 0, 1,   0.01, 0, {}, "", "mul")
 
-  controls.mul.ui       = UI.Dial.new(col1, row2, 10, 0, 0, 1,    0.01, 0, {}, "", "mul")
-  controls.verb_wet.ui  = UI.Dial.new(col2, row2, 10, 0, 0, 1,    0.01, 0, {}, "", "wet")
-  controls.verb_time.ui = UI.Dial.new(col3, row2, 10, 0, 0, 1.25, 0.01, 0, {}, "", "rvb")
+  controls.verb_wet.ui  = UI.Dial.new(col1, row2, 10, 0, 0, 1,    0.01, 0, {}, "", "wet")
+  controls.verb_time.ui = UI.Dial.new(col2, row2, 10, 0, 0, 1.25, 0.01, 0, {}, "", "rvb")
 
   for k, v in pairs(controls) do
     controls[k].ui:set_value(params:get(k))
@@ -97,8 +91,8 @@ function init()
     function(n, vel)
       current_note = n
       local c = n / 127
-      params:set("cutoff", c)
-      controls.cutoff.ui:set_value(c)
+      params:set("cf", c)
+      controls.cf.ui:set_value(c)
       redraw()
     end,
     function() end
@@ -110,22 +104,22 @@ end
 function key(n, z)
   if n == 2 and z == 1 then
     local c = current_note / 127
-    params:set("cutoff", c)
-    controls.cutoff.ui:set_value(c)
+    params:set("cf", c)
+    controls.cf.ui:set_value(c)
     redraw()
   end
 end
 
 function enc(n, d)
   if n == 1 then
-    params:delta("cutoff", d)
-    controls.cutoff.ui:set_value(params:get("cutoff"))
+    params:delta("cf", d)
+    controls.cf.ui:set_value(params:get("cf"))
   elseif n == 2 then
-    params:delta("resonance", d)
-    controls.resonance.ui:set_value(params:get("resonance"))
+    params:delta("reson", d)
+    controls.reson.ui:set_value(params:get("reson"))
   elseif n == 3 then
-    params:delta("gain", d)
-    controls.gain.ui:set_value(params:get("gain"))
+    params:delta("drive", d)
+    controls.drive.ui:set_value(params:get("drive"))
   end
   redraw()
 end

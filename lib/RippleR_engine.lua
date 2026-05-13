@@ -18,14 +18,12 @@ function RippleR.add_params()
 
   params:add_separator("Ripple Filter")
 
-  params:add{type = "control", id = "cutoff", name = "cutoff",
-    controlspec = cs.new(0.00, 1.00, "lin", 0.01, 0.5, ""), action = engine.cutoff}
-  params:add{type = "control", id = "resonance", name = "resonance",
-    controlspec = cs.new(0.00, 1.00, "lin", 0.01, 0.5, ""), action = engine.resonance}
-  params:add{type = "control", id = "fm", name = "fm",
-    controlspec = cs.new(0.00, 1.00, "lin", 0.01, 0.0, ""), action = engine.fm}
-  params:add{type = "control", id = "gain", name = "gain",
-    controlspec = cs.new(0.00, 1.00, "lin", 0.01, 1.0, ""), action = engine.gain}
+  params:add{type = "control", id = "cf", name = "cutoff",
+    controlspec = cs.new(0.00, 1.00, "lin", 0.01, 0.3, ""), action = engine.cf}
+  params:add{type = "control", id = "reson", name = "resonance",
+    controlspec = cs.new(0.00, 1.00, "lin", 0.01, 0.5, ""), action = engine.reson}
+  params:add{type = "control", id = "drive", name = "drive",
+    controlspec = cs.new(0.00, 2.00, "lin", 0.01, 1.0, ""), action = engine.drive}
   params:add{type = "control", id = "mul", name = "mul",
     controlspec = cs.new(0.00, 1.00, "lin", 0.01, 1.0, ""), action = engine.mul}
 
