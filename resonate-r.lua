@@ -106,9 +106,11 @@ function init()
           if params:get("ping_resonator") == 1 then
             engine.noteOn(d.note)
           end
+          IntervalsGrid.note_on(d.note)
           redraw()
         elseif d.type == "note_off" and params:get("ping_resonator") == 1 then
           engine.noteOff(0)
+          IntervalsGrid.note_off(d.note)
         end
       end
     end

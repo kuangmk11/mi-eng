@@ -10,6 +10,7 @@
 
 local g = grid.connect()
 local held = {}
+local midi_held = {}
 local vel_idx = 4
 local velocities = {127, 112, 96, 80, 64, 32, 16, 1}
 local display = {[0]=9, 0, 4, 0, 4, 4, 0, 4, 0, 4, 0, 4}
@@ -25,6 +26,12 @@ local function grid_redraw()
   end
   for x, row in pairs(held) do
     for y, _ in pairs(row) do g:led(x, y, 15) end
+  end
+  for n, _ in pairs(midi_held) do
+    for gy = 1, 8 do
+      local x = n + 5 * gy - 81
+      if x >= 2 and x <= 16 then g:led(x, gy, 15) end
+    end
   end
   g:led(1, vel_idx, 15)
   g:refresh()
@@ -55,6 +62,16 @@ function IntervalsGrid.init(note_on, note_off)
       grid_redraw()
     end
   end
+  grid_redraw()
+end
+
+function IntervalsGrid.note_on(n)
+  midi_held[n] = true
+  grid_redraw()
+end
+
+function IntervalsGrid.note_off(n)
+  midi_held[n] = nil
   grid_redraw()
 end
 

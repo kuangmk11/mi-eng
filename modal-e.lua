@@ -140,9 +140,11 @@ function init()
         controls.pit.ui:set_value(d.note)
         omi_dials.pit:set_value(d.note)
         engine.noteOn(d.note)
+        IntervalsGrid.note_on(d.note)
         redraw()
       elseif d.type == "note_off" then
         engine.noteOff(0)
+        IntervalsGrid.note_off(d.note)
       elseif d.type == "cc" then
         for k,v in pairs(controls) do
           if controls[k].midi == d.cc then

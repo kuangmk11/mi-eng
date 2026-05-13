@@ -123,9 +123,11 @@ function init()
         params:set("pitch", d.note)
         controls.pitch.ui:set_value (d.note)
         engine.noteOn(d.note, d.vel)
+        IntervalsGrid.note_on(d.note)
         redraw()
       elseif d.type == "note_off" then
         engine.noteOff(0)
+        IntervalsGrid.note_off(d.note)
       end 
       if d.type == "cc" then
         for k,v in pairs(controls) do
